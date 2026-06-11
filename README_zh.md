@@ -37,7 +37,7 @@ done
 | [`pr-fix`](prompts/xllm-npu-pr-fix-prompts.md) | PR 回归、review 回复、rebase、编译门禁 |
 | [`op-migration`](prompts/xllm-npu-op-migration-prompts.md) | 算子迁移、torch_npu/Triton-Ascend/AscendC |
 
-### C. 证据闭环
+### C. 执行工作流
 
 正式工作遵循 `target → baseline → profiling → patch → accuracy → performance → record`。
 Skill 路由见 [AGENT.md](AGENT.md)，Phase 详情见 [docs/workflow](docs/npu-ai-coding-standard-workflow.md)。

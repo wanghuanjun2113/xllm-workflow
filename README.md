@@ -39,7 +39,7 @@ framework, workload, and target metrics.
 | [`pr-fix`](prompts/xllm-npu-pr-fix-prompts.md) | PR regressions, review replies, rebase, build gates |
 | [`op-migration`](prompts/xllm-npu-op-migration-prompts.md) | Operator migration, torch_npu/Triton-Ascend/AscendC |
 
-### C. Evidence Loop
+### C. Execute Workflow
 
 Formal work follows `target → baseline → profiling → patch → accuracy → performance → record`.
 See [AGENT.md](AGENT.md) for skill routing and [docs/workflow](docs/npu-ai-coding-standard-workflow.md) for phase details.
