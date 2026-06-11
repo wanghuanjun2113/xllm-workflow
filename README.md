@@ -53,10 +53,10 @@ config.json         → Unified configuration SSOT (active / full_test / static)
 prompts/            → Copy-ready task prompt templates (Chinese)
 skills/             → 11 procedural agent skills (eval, profiler, benchmark, …)
 reference/
-   A  knowledge/    → Immutable domain rules (NPU specs in config.json static.npu_specs)
-   B  code-style/   → C++/Python/NPU code style conventions
-   C  io_specs/     → Artifact schemas (run manifest, perf, accuracy, profiling)
-   D  pr_history/   → Model dossiers and PR history (queryable via scripts/query.py)
+   knowledge/    → Immutable domain rules (NPU specs in config.json static.npu_specs)
+   code-style/   → C++/Python/NPU code style conventions
+   io_specs/     → Artifact schemas (run manifest, perf, accuracy, profiling)
+   pr_history/   → Model dossiers and PR history (queryable via scripts/query.py)
 baseline/           → Performance acceptance criteria
 scripts/            → Cross-skill shared deterministic scripts
 humanize/           → Experience flywheel (validated troubleshooting lessons)

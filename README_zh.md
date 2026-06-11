@@ -37,7 +37,7 @@ done
 | [`pr-fix`](prompts/xllm-npu-pr-fix-prompts.md) | PR 回归、review 回复、rebase、编译门禁 |
 | [`op-migration`](prompts/xllm-npu-op-migration-prompts.md) | 算子迁移、torch_npu/Triton-Ascend/AscendC |
 
-### C. 执行工作流
+### C. 证据闭环
 
 正式工作遵循 `target → baseline → profiling → patch → accuracy → performance → record`。
 Skill 路由见 [AGENT.md](AGENT.md)，Phase 详情见 [docs/workflow](docs/npu-ai-coding-standard-workflow.md)。
@@ -51,10 +51,10 @@ config.json         → 统一配置 SSOT（active / full_test / static）
 prompts/            → 可直接复制的中文任务 Prompt 模板
 skills/             → 11 个过程化 agent skill（评测、profiler、benchmark…）
 reference/
-   A  knowledge/    → 不可变领域规则（NPU 规格在 config.json static.npu_specs）
-   B  code-style/   → C++/Python/NPU 代码风格约定
-   C  io_specs/     → Artifact schema（manifest、perf、accuracy、profiling）
-   D  pr_history/   → 模型 dossier 与 PR 历史（可通过 scripts/query.py 查询）
+   knowledge/    → 不可变领域规则（NPU 规格在 config.json static.npu_specs）
+   code-style/   → C++/Python/NPU 代码风格约定
+   io_specs/     → Artifact schema（manifest、perf、accuracy、profiling）
+   pr_history/   → 模型 dossier 与 PR 历史（可通过 scripts/query.py 查询）
 baseline/           → 性能验收标准
 scripts/            → 跨 skill 共用确定性脚本
 humanize/           → 经验飞轮（经验证的排障与调优教训）
