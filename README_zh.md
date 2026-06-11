@@ -215,8 +215,8 @@ The final result is recorded in humanize ledgers and model PR history.
 ## 仓库结构
 
 ```text
-Agent.md                        统一 agent 项目规则（合并 AGENTS.md 和 INSTRUCTIONS.md）
-CLAUDE.md                       Claude Code guardrails，与 Agent.md 保持同步
+AGENT.md                        统一 agent 项目规则（合并 AGENTS.md 和 INSTRUCTIONS.md）
+CLAUDE.md                       Claude Code guardrails，与 AGENT.md 保持同步
 config.json                     统一配置 SSOT（模型、硬件、框架、workload 参数）
 README.md                       默认英文入口文档
 README_zh.md                    中文入口文档

@@ -227,8 +227,8 @@ Use these shared schemas when possible:
 ## Repository Layout
 
 ```text
-Agent.md                        Unified agent project rules
-CLAUDE.md                       Claude Code guardrails, synchronized with Agent.md
+AGENT.md                        Unified agent project rules
+CLAUDE.md                       Claude Code guardrails, synchronized with AGENT.md
 config.json                     Single source of truth for repository configuration and skill routing
 README.md                       Public English overview
 baseline/                       Performance acceptance criteria and threshold definitions
