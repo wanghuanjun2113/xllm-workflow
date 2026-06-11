@@ -85,7 +85,7 @@
 - [ ] **Step 1: Create all target directories**
 
 ```bash
-cd /home/g00510989/xllm_whj/xllm-workflow
+cd "$(git rev-parse --show-toplevel)"
 mkdir -p reference/knowledge reference/code-style reference/io_specs reference/pr_history
 mkdir -p baseline scripts
 ```
@@ -318,7 +318,7 @@ git commit -m "feat: add config.json as unified configuration SSOT
 - [ ] **Step 1: Move dossiers and supporting files**
 
 ```bash
-cd /home/g00510989/xllm_whj/xllm-workflow
+cd "$(git rev-parse --show-toplevel)"
 
 git mv model-pr-optimization-history/xllm/deepseek-v3.md reference/pr_history/deepseek-v3.md
 git mv model-pr-optimization-history/xllm/glm-5.md reference/pr_history/glm-5.md
@@ -390,7 +390,7 @@ git commit -m "refactor: migrate model-pr-optimization-history to reference/pr_h
 - [ ] **Step 1: Move benchmark shared scripts**
 
 ```bash
-cd /home/g00510989/xllm_whj/xllm-workflow
+cd "$(git rev-parse --show-toplevel)"
 
 git mv skills/xllm-npu-benchmark/scripts/collect_evalscope_results.py scripts/collect_evalscope_results.py
 git mv skills/xllm-npu-benchmark/scripts/compare_npu_benchmark.py scripts/compare_npu_benchmark.py
@@ -430,7 +430,7 @@ git commit -m "refactor: move cross-skill shared scripts to top-level scripts/
 - [ ] **Step 1: Delete kernel-pilot/**
 
 ```bash
-cd /home/g00510989/xllm_whj/xllm-workflow
+cd "$(git rev-parse --show-toplevel)"
 git rm -r kernel-pilot/
 ```
 
@@ -750,7 +750,7 @@ Claude Code-specific conventions if needed.
 - [ ] **Step 1: Delete both files**
 
 ```bash
-cd /home/g00510989/xllm_whj/xllm-workflow
+cd "$(git rev-parse --show-toplevel)"
 git rm INSTRUCTIONS.md
 git rm AGENTS.md
 ```
@@ -1057,7 +1057,7 @@ Read `scripts/query.py` and update any internal path references from `model-pr-o
 - [ ] **Step 4: Run tests to verify**
 
 ```bash
-cd /home/g00510989/xllm_whj/xllm-workflow
+cd "$(git rev-parse --show-toplevel)"
 python -m pytest tests/ -v
 ```
 
@@ -1177,7 +1177,7 @@ git commit -m "docs: update workflow doc path references for new structure"
 - [ ] **Step 1: Run all tests**
 
 ```bash
-cd /home/g00510989/xllm_whj/xllm-workflow
+cd "$(git rev-parse --show-toplevel)"
 python -m pytest tests/ -v
 ```
 

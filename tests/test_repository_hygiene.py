@@ -16,15 +16,14 @@ def text_files():
 
 def test_skill_frontmatter_has_name_and_description():
     skill_files = list(ROOT.glob("skills/*/SKILL.md")) + [
-        ROOT / "kernel-pilot/SKILL.md",
-        ROOT / "model-pr-optimization-history/SKILL.md",
+        ROOT / "reference/pr_history/SKILL.md",
     ]
     for skill in skill_files:
         text = skill.read_text(encoding="utf-8")
         assert text.startswith("---\n"), skill
         header = text.split("---", 2)[1]
         assert re.search(r"^name:\s*\S+", header, re.M), skill
-        assert re.search(r"^description:\s*.+", header, re.M), skill
+        assert re.search(r"^description:\s+.+", header, re.M), skill
 
 
 def test_skills_do_not_hardcode_single_agent_install_paths():
@@ -34,8 +33,7 @@ def test_skills_do_not_hardcode_single_agent_install_paths():
         "~/.claude/skills/",
     ]
     skill_files = list(ROOT.glob("skills/*/SKILL.md")) + [
-        ROOT / "kernel-pilot/SKILL.md",
-        ROOT / "model-pr-optimization-history/SKILL.md",
+        ROOT / "reference/pr_history/SKILL.md",
     ]
     for skill in skill_files:
         text = skill.read_text(encoding="utf-8")
