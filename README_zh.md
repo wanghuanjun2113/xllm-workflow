@@ -6,10 +6,14 @@
 首个落地目标：[xLLM](https://github.com/jd-opensource/xllm)；公平基线：
 [vLLM-Ascend](https://github.com/vllm-project/vllm-ascend) 和 SGLang NPU。
 
-本仓库**不是** xLLM 运行时或 benchmark 归档——它提供一套可复用的 AI Coding 工作流，
-帮助工程师和 agent 做公平评测、采集 profiling 证据、定位精度回归、review NPU 改动、
-并沉淀优化经验。需要昇腾 910B3/A3 NPU、CANN 驱动和 agent runtime（Codex、Claude Code
-或 opencode）。
+本仓库**不是** xLLM 运行时或 benchmark 归档——它提供一套可复用的 AI Coding 工作流。
+需要昇腾 910B3/A3 NPU、CANN 驱动和 agent runtime（Codex、Claude Code 或 opencode）。
+
+**本仓库可以处理的任务：**
+
+1. **特性设计与开发** — 设计新的 NPU serving 特性，编写代码，通过 review-gated 证据闭环验证。
+2. **问题定位与修复** — 定位精度回归、crash、OOM、图模式失败或 HCCL 问题，产出可复现证据和验证过的 patch。
+3. **性能优化** — 建立公平基线，采集 profiling 证据，识别瓶颈，迭代逼近 TPOT/TTFT/TPS 目标并量化收益。
 
 ## 1 快速开始
 

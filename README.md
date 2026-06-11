@@ -8,10 +8,14 @@ large-model serving optimization on Ascend NPUs. First landing target:
 [vLLM-Ascend](https://github.com/vllm-project/vllm-ascend) and SGLang NPU.
 
 This is **not** the xLLM runtime or a benchmark archive — it is a reusable
-AI coding workflow for engineers and agents that need fair evaluations,
-profiling evidence, accuracy debugging, NPU code review, and reusable
-optimization lessons. Requires Ascend 910B3/A3 NPU, CANN driver, and an
-agent runtime (Codex, Claude Code, or opencode).
+AI coding workflow for engineers and agents. Requires Ascend 910B3/A3 NPU,
+CANN driver, and an agent runtime (Codex, Claude Code, or opencode).
+
+**What this repository handles:**
+
+1. **Feature design & development** — Design new NPU serving features, write code, and validate through review-gated evidence loops.
+2. **Issue diagnosis & fix** — Locate accuracy regressions, crashes, OOM, graph failures, or HCCL issues; produce reproducible evidence and validated patches.
+3. **Performance optimization** — Establish fair baselines, collect profiling evidence, identify bottlenecks, and iterate toward TPOT/TTFT/TPS targets with measurable gains.
 
 ## 1 Quick Start
 
