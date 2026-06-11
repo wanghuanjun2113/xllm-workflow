@@ -13,9 +13,9 @@ profiling evidence, accuracy debugging, NPU code review, and reusable
 optimization lessons. Requires Ascend 910B3/A3 NPU, CANN driver, and an
 agent runtime (Codex, Claude Code, or opencode).
 
-## Quick Start
+## 1 Quick Start
 
-### 1. Install The Skills
+### A. Install The Skills
 
 ```bash
 export AGENT_SKILL_DIR="${CODEX_HOME:-$HOME/.codex}/skills"   # Codex
@@ -27,7 +27,7 @@ for skill_dir in skills/xllm-npu-*; do
 done
 ```
 
-### 2. Pick A Prompt
+### B. Pick A Prompt
 
 Copy a template from [`prompts/`](prompts/) and fill in model, hardware,
 framework, workload, and target metrics.
@@ -39,12 +39,12 @@ framework, workload, and target metrics.
 | [`pr-fix`](prompts/xllm-npu-pr-fix-prompts.md) | PR regressions, review replies, rebase, build gates |
 | [`op-migration`](prompts/xllm-npu-op-migration-prompts.md) | Operator migration, torch_npu/Triton-Ascend/AscendC |
 
-### 3. Evidence Loop
+### C. Evidence Loop
 
 Formal work follows `target → baseline → profiling → patch → accuracy → performance → record`.
 See [AGENT.md](AGENT.md) for skill routing and [docs/workflow](docs/npu-ai-coding-standard-workflow.md) for phase details.
 
-## Directory Overview
+## 2 Directory Overview
 
 ```text
 1  AGENT.md            → Agent system prompt (constraints, skill routing, directory guide)
@@ -76,7 +76,7 @@ See [AGENT.md](AGENT.md) for skill routing and [docs/workflow](docs/npu-ai-codin
 
 **`skills/`** contains 11 procedural agent skills, each with a SKILL.md defining the execution workflow, evidence contracts, and local references. Agents load the smallest skill matching the task.
 
-## Architecture
+## 3 Architecture
 
 ![xLLM AI Coding Workflow](docs/assets/xllm-ai-coding-workflow-en.png)
 
@@ -84,7 +84,7 @@ An evidence-driven loop: each optimization starts from a measurable target,
 collects comparable data, makes one reviewable change, and leaves artifacts
 for reproduction.
 
-## Contribution Guidelines
+## 4 Contribution Guidelines
 
 - Turn reusable lessons into skills, references, schemas, or PR history entries.
 - Keep public docs generic; model-specific lessons go in `reference/pr_history/`.
@@ -92,6 +92,6 @@ for reproduction.
 - Do not commit local paths, private IPs, credentials, or non-public logs.
 - Separate generic NPU evidence from framework-specific adapters.
 
-## License
+## 5 License
 
 No license file yet. Add one before broad external reuse.

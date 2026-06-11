@@ -11,9 +11,9 @@
 并沉淀优化经验。需要昇腾 910B3/A3 NPU、CANN 驱动和 agent runtime（Codex、Claude Code
 或 opencode）。
 
-## 快速开始
+## 1 快速开始
 
-### 1. 安装 Skills
+### A. 安装 Skills
 
 ```bash
 export AGENT_SKILL_DIR="${CODEX_HOME:-$HOME/.codex}/skills"   # Codex
@@ -25,7 +25,7 @@ for skill_dir in skills/xllm-npu-*; do
 done
 ```
 
-### 2. 选择 Prompt
+### B. 选择 Prompt
 
 从 [`prompts/`](prompts/) 复制模板，填入模型、硬件、框架、workload 和目标指标。
 
@@ -36,12 +36,12 @@ done
 | [`pr-fix`](prompts/xllm-npu-pr-fix-prompts.md) | PR 回归、review 回复、rebase、编译门禁 |
 | [`op-migration`](prompts/xllm-npu-op-migration-prompts.md) | 算子迁移、torch_npu/Triton-Ascend/AscendC |
 
-### 3. 证据闭环
+### C. 证据闭环
 
 正式工作遵循 `target → baseline → profiling → patch → accuracy → performance → record`。
 Skill 路由见 [AGENT.md](AGENT.md)，Phase 详情见 [docs/workflow](docs/npu-ai-coding-standard-workflow.md)。
 
-## 目录一览
+## 2 目录一览
 
 ```text
 1  AGENT.md            → Agent 系统提示（约束、Skill路由、目录说明）
@@ -73,14 +73,14 @@ Skill 路由见 [AGENT.md](AGENT.md)，Phase 详情见 [docs/workflow](docs/npu-
 
 **`skills/`** 包含 11 个过程化 agent skill，每个 SKILL.md 定义了执行流程、证据合约和本地 reference。Agent 加载与任务匹配的最小 skill 即可。
 
-## 架构
+## 3 架构
 
 ![xLLM AI Coding Workflow](docs/assets/xllm-ai-coding-workflow-zh.png)
 
 证据驱动闭环：每次优化从可量化目标出发，采集可比数据，做一条可 review 的改动，
 并留下可复现的 artifact。
 
-## 贡献指南
+## 4 贡献指南
 
 - 把可复用经验沉淀为 skill、reference、schema 或 PR history entry。
 - 公共文档保持通用；模型相关经验放 `reference/pr_history/`。
@@ -88,6 +88,6 @@ Skill 路由见 [AGENT.md](AGENT.md)，Phase 详情见 [docs/workflow](docs/npu-
 - 不提交本地路径、私有 IP、凭据或非公开日志。
 - 通用 NPU evidence layer 与 framework adapter layer 分开维护。
 
-## License
+## 5 License
 
 当前尚未添加 license 文件。在面向更广泛外部复用前，应先补充。
