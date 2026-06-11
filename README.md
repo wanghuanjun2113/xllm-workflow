@@ -46,8 +46,6 @@ mkdir -p "$AGENT_SKILL_DIR"
 for skill_dir in skills/xllm-npu-*; do
   ln -sfn "$(pwd)/$skill_dir" "$AGENT_SKILL_DIR/$(basename "$skill_dir")"
 done
-ln -sfn "$(pwd)/kernel-pilot" "$AGENT_SKILL_DIR/xllm-npu-kernel-pilot"
-ln -sfn "$(pwd)/model-pr-optimization-history" "$AGENT_SKILL_DIR/model-pr-optimization-history"
 ```
 
 If the target agent does not support symlinks, copy the needed skill
@@ -83,12 +81,15 @@ before/after performance runs.
 |---|---|
 | [`skills/`](skills/) | Procedural agent skills for evaluation, profiling, benchmarking, accuracy debugging, incident triage, PR review, and operator migration |
 | [`prompts/`](prompts/) | Copy-ready task prompts, currently written in Chinese for local engineering usability |
-| [`references/`](references/) | Shared run manifest, performance, accuracy, profiling, NPU specs, and style contracts |
+| [`reference/knowledge/`](reference/knowledge/) | NPU specs, hardware limits, framework adapters, and reusable optimization knowledge |
+| [`reference/code-style/`](reference/code-style/) | Code style contracts and naming conventions for NPU serving code |
+| [`reference/io_specs/`](reference/io_specs/) | Shared run manifest, performance, accuracy, and profiling artifact schemas |
+| [`reference/pr_history/`](reference/pr_history/) | Queryable model and PR history for optimization decisions |
 | [`docs/`](docs/) | General NPU AI coding workflow documentation |
-| [`model-pr-optimization-history/`](model-pr-optimization-history/) | Queryable model and PR history for optimization decisions |
 | [`humanize/`](humanize/) | Run-level ledger contract for recording decisions, review feedback, and lessons |
-| [`kernel-pilot/`](kernel-pilot/) | Kernel-level experiment helper used after profiling justifies lower-level work |
-| [`patches/`](patches/) | Minimal patches or migration notes, not full-file snapshots |
+| [`config.json`](config.json) | Single source of truth for repository configuration and skill routing |
+| [`baseline/`](baseline/) | Performance acceptance criteria and threshold definitions |
+| [`scripts/`](scripts/) | Cross-skill shared deterministic scripts for evaluation, profiling, and analysis |
 
 ## Architecture
 
@@ -102,7 +103,7 @@ stores:
 | Orchestrator | `xllm-npu-sota-loop` | Coordinates Research, Learn, Code, Review, Validate, and Record |
 | Execution & Collection | `xllm-npu-eval-runner`, `xllm-npu-profiler`, `xllm-npu-incident-triage` | Starts services, runs evaluations, captures profiling, replays incidents, and collects raw artifacts |
 | Analysis & Decision | benchmark / pipeline / capacity / compute / accuracy / code-review | Turns performance, accuracy, capacity, bubbles, hardware limits, and PR risks into verifiable conclusions |
-| Supporting Knowledge | `model-pr-optimization-history`, `kernel-pilot`, `references/`, `humanize/` | Stores historical PRs, kernel experiments, artifact schemas, optimization ledgers, and lineage |
+| Supporting Knowledge | `reference/pr_history/`, `reference/knowledge/`, `reference/io_specs/`, `reference/code-style/`, `humanize/` | Stores historical PRs, reusable knowledge, artifact schemas, style contracts, and optimization ledgers |
 
 ## Core Workflow
 
@@ -152,9 +153,7 @@ for the full workflow.
 | Debug garbled output or accuracy regressions | [`xllm-npu-accuracy-debug`](skills/xllm-npu-accuracy-debug/SKILL.md) | Use bisect when the introducing commit is unclear |
 | Triage crash, OOM, graph, or HCCL incidents | [`xllm-npu-incident-triage`](skills/xllm-npu-incident-triage/SKILL.md) | Save replay commands and raw logs |
 | Review NPU-related PRs | [`xllm-npu-code-review`](skills/xllm-npu-code-review/SKILL.md) | Also check the target repository's own agent rules |
-| Migrate external or experimental operators | [`xllm-npu-op-migration`](skills/xllm-npu-op-migration/SKILL.md) | Use `kernel-pilot` only when a new kernel is justified |
-| Query historical model work | [`model-pr-optimization-history`](model-pr-optimization-history/SKILL.md) | Update the dossier after reusable lessons are learned |
-| Try kernel-level optimization | [`kernel-pilot`](kernel-pilot/SKILL.md) | First prove with profiling that the kernel is the bottleneck |
+| Migrate external or experimental operators | [`xllm-npu-op-migration`](skills/xllm-npu-op-migration/SKILL.md) | Only write a new kernel when profiling proves the operator is the bottleneck |
 
 ## Example Tasks
 
@@ -188,7 +187,7 @@ Run an end-to-end optimization loop:
 ```text
 Use xllm-npu-sota-loop:
 Phase 0 records the environment and target.
-Phase 0.5 queries model-pr-optimization-history.
+Phase 0.5 queries reference/pr_history/.
 Phase 1 establishes a fair baseline.
 Phase 3 collects profiling evidence.
 Phase 5 applies one patch per round.
@@ -212,10 +211,10 @@ Use these shared schemas when possible:
 
 | Contract | Purpose |
 |---|---|
-| [`run-manifest-template.md`](references/run-manifest-template.md) | Commit, environment, model, startup command, workload, artifact paths |
-| [`perf-artifact-schema.md`](references/perf-artifact-schema.md) | TTFT, TPOT, TPS, warmup, sampling parameters, server-side counters |
-| [`accuracy-artifact-schema.md`](references/accuracy-artifact-schema.md) | Raw predictions, failed cases, scores, validation levels |
-| [`profiling-artifact-schema.md`](references/profiling-artifact-schema.md) | msprof capture, five tables, timeline notes, inconclusive rules |
+| [`run-manifest-template.md`](reference/io_specs/run-manifest-template.md) | Commit, environment, model, startup command, workload, artifact paths |
+| [`perf-artifact-schema.md`](reference/io_specs/perf-artifact-schema.md) | TTFT, TPOT, TPS, warmup, sampling parameters, server-side counters |
+| [`accuracy-artifact-schema.md`](reference/io_specs/accuracy-artifact-schema.md) | Raw predictions, failed cases, scores, validation levels |
+| [`profiling-artifact-schema.md`](reference/io_specs/profiling-artifact-schema.md) | msprof capture, five tables, timeline notes, inconclusive rules |
 
 ## Requirements
 
@@ -228,27 +227,32 @@ Use these shared schemas when possible:
 ## Repository Layout
 
 ```text
-AGENTS.md                       Codex / opencode / generic agent project rules
-CLAUDE.md                       Claude Code guardrails, synchronized with AGENTS.md
-INSTRUCTIONS.md                 Short local orientation for agents and users
+Agent.md                        Unified agent project rules
+CLAUDE.md                       Claude Code guardrails, synchronized with Agent.md
+config.json                     Single source of truth for repository configuration and skill routing
 README.md                       Public English overview
+baseline/                       Performance acceptance criteria and threshold definitions
 docs/                           General NPU workflow documentation
-skills/                         Core procedural agent skills
-prompts/                        Copy-ready task prompts
-references/                     Shared schemas, specs, and reusable rules
-model-pr-optimization-history/   Historical model and PR knowledge
 humanize/                       Run ledger contract
-kernel-pilot/                   Kernel experiment helper
-patches/                        Minimal patches or migration notes
+prompts/                        Copy-ready task prompts
+reference/                      Reusable knowledge and specifications
+  knowledge/                    NPU specs, hardware limits, framework adapters, optimization lessons
+  code-style/                   Code style contracts and naming conventions
+  io_specs/                     Shared artifact schemas (manifest, perf, accuracy, profiling)
+  pr_history/                   Historical model and PR knowledge
+scripts/                        Cross-skill shared deterministic scripts
+skills/                         Core procedural agent skills
 tests/                          Repository hygiene and schema smoke tests
+code/                           External mount directory (gitignored)
+runs/                           Execution workspace (gitignored)
 ```
 
 ## Contribution Guidelines
 
 - Turn reusable lessons into skills, references, schemas, prompt templates, or
-  model history entries.
+  PR history entries.
 - Keep public entry documents generic; put model-specific lessons under
-  `model-pr-optimization-history/` or skill `references/`.
+  `reference/pr_history/` or skill `reference/`.
 - Preserve failed attempts when they explain a future decision.
 - Do not commit local paths, private IPs, private dataset names, credentials,
   or non-public production logs.

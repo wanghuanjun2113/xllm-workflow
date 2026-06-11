@@ -41,8 +41,6 @@ mkdir -p "$AGENT_SKILL_DIR"
 for skill_dir in skills/xllm-npu-*; do
   ln -sfn "$(pwd)/$skill_dir" "$AGENT_SKILL_DIR/$(basename "$skill_dir")"
 done
-ln -sfn "$(pwd)/kernel-pilot" "$AGENT_SKILL_DIR/xllm-npu-kernel-pilot"
-ln -sfn "$(pwd)/model-pr-optimization-history" "$AGENT_SKILL_DIR/model-pr-optimization-history"
 ```
 
 如果目标 agent 不支持 symlink，也可以直接复制需要的 skill 目录。
@@ -74,12 +72,15 @@ Profiling 用于解释瓶颈，不能替代非 profiling 的 before/after 性能
 |---|---|
 | [`skills/`](skills/) | 面向评测、profiling、benchmark、精度定位、事故定位、PR review 和算子迁移的过程化 agent skills |
 | [`prompts/`](prompts/) | 可直接复制的中文任务 Prompt 模板 |
-| [`references/`](references/) | run manifest、性能、精度、profiling、NPU 规格和代码风格等共享规范 |
+| [`reference/io_specs/`](reference/io_specs/) | run manifest、性能、精度、profiling 等共享 artifact schema |
+| [`reference/knowledge/`](reference/knowledge/) | NPU 规格和可复用参考知识 |
+| [`reference/code-style/`](reference/code-style/) | 代码风格约定 |
+| [`reference/pr_history/`](reference/pr_history/) | 可查询的模型和 PR 历史知识，用于优化决策 |
 | [`docs/`](docs/) | 通用 NPU AI Coding 工作流文档 |
-| [`model-pr-optimization-history/`](model-pr-optimization-history/) | 可查询的模型和 PR 历史知识，用于优化决策 |
 | [`humanize/`](humanize/) | run-level ledger 约定，用于记录决策、review 反馈和经验 |
-| [`kernel-pilot/`](kernel-pilot/) | profiling 证明需要底层优化后使用的 kernel 实验 helper |
-| [`patches/`](patches/) | 最小 patch 或迁移说明，不保存完整文件快照 |
+| [`baseline/`](baseline/) | 性能验收标准和基准数据 |
+| [`scripts/`](scripts/) | 确定性脚本库（query、compare、validate、collect） |
+| `config.json` | 统一配置 SSOT（模型、硬件、框架、workload 参数） |
 
 ## 架构
 
@@ -92,7 +93,7 @@ Profiling 用于解释瓶颈，不能替代非 profiling 的 before/after 性能
 | Orchestrator | `xllm-npu-sota-loop` | 协调 Research、Learn、Code、Review、Validate、Record |
 | Execution & Collection | `xllm-npu-eval-runner`、`xllm-npu-profiler`、`xllm-npu-incident-triage` | 启动服务、运行评测、采集 profiling、复现事故、收集原始 artifacts |
 | Analysis & Decision | benchmark / pipeline / capacity / compute / accuracy / code-review | 把性能、精度、容量、bubble、硬件下界和 PR 风险转化为可验证结论 |
-| Supporting Knowledge | `model-pr-optimization-history`、`kernel-pilot`、`references/`、`humanize/` | 保存历史 PR、kernel 实验、artifact schema、优化 ledger 和 lineage |
+| Supporting Knowledge | `reference/pr_history/`、`reference/`、`baseline/`、`humanize/` | 保存历史 PR、artifact schema、基准数据、优化 ledger 和 lineage |
 
 ## 核心工作流
 
@@ -139,9 +140,8 @@ RLCR 表示 Ralph-Loop with Codex Review：实现工作需要被独立 review，
 | 定位乱码输出或精度回归 | [`xllm-npu-accuracy-debug`](skills/xllm-npu-accuracy-debug/SKILL.md) | 不清楚引入 commit 时使用 bisect |
 | 定位 crash、OOM、图模式或 HCCL 事故 | [`xllm-npu-incident-triage`](skills/xllm-npu-incident-triage/SKILL.md) | 保存 replay 命令和原始日志 |
 | Review NPU 相关 PR | [`xllm-npu-code-review`](skills/xllm-npu-code-review/SKILL.md) | 同时检查目标仓库自己的 agent rules |
-| 迁移外部或实验性算子 | [`xllm-npu-op-migration`](skills/xllm-npu-op-migration/SKILL.md) | 只有新 kernel 被证明必要时才使用 `kernel-pilot` |
-| 查询历史模型优化经验 | [`model-pr-optimization-history`](model-pr-optimization-history/SKILL.md) | 学到可复用经验后更新 dossier |
-| 尝试 kernel-level 优化 | [`kernel-pilot`](kernel-pilot/SKILL.md) | 先用 profiling 证明 kernel 是瓶颈 |
+| 迁移外部或实验性算子 | [`xllm-npu-op-migration`](skills/xllm-npu-op-migration/SKILL.md) | 只有 profiling 证明算子是瓶颈后才深入底层优化 |
+| 查询历史模型优化经验 | [`reference/pr_history`](reference/pr_history/SKILL.md) | 学到可复用经验后更新 dossier |
 
 ## 示例任务
 
@@ -175,7 +175,7 @@ Produce a validated optimization candidate.
 ```text
 Use xllm-npu-sota-loop:
 Phase 0 records the environment and target.
-Phase 0.5 queries model-pr-optimization-history.
+Phase 0.5 queries reference/pr_history.
 Phase 1 establishes a fair baseline.
 Phase 3 collects profiling evidence.
 Phase 5 applies one patch per round.
@@ -199,10 +199,10 @@ The final result is recorded in humanize ledgers and model PR history.
 
 | 规范 | 用途 |
 |---|---|
-| [`run-manifest-template.md`](references/run-manifest-template.md) | commit、环境、模型、启动命令、workload、artifact 路径 |
-| [`perf-artifact-schema.md`](references/perf-artifact-schema.md) | TTFT、TPOT、TPS、warmup、采样参数、server-side counters |
-| [`accuracy-artifact-schema.md`](references/accuracy-artifact-schema.md) | 原始预测、失败样例、分数、验证等级 |
-| [`profiling-artifact-schema.md`](references/profiling-artifact-schema.md) | msprof 采集、五表分析、timeline notes、inconclusive 规则 |
+| [`run-manifest-template.md`](reference/io_specs/run-manifest-template.md) | commit、环境、模型、启动命令、workload、artifact 路径 |
+| [`perf-artifact-schema.md`](reference/io_specs/perf-artifact-schema.md) | TTFT、TPOT、TPS、warmup、采样参数、server-side counters |
+| [`accuracy-artifact-schema.md`](reference/io_specs/accuracy-artifact-schema.md) | 原始预测、失败样例、分数、验证等级 |
+| [`profiling-artifact-schema.md`](reference/io_specs/profiling-artifact-schema.md) | msprof 采集、五表分析、timeline notes、inconclusive 规则 |
 
 ## 环境要求
 
@@ -215,26 +215,30 @@ The final result is recorded in humanize ledgers and model PR history.
 ## 仓库结构
 
 ```text
-AGENTS.md                       Codex / opencode / 通用 agent 项目规则
-CLAUDE.md                       Claude Code guardrails，与 AGENTS.md 保持同步
-INSTRUCTIONS.md                 给 agent 和用户的简短本地说明
+Agent.md                        统一 agent 项目规则（合并 AGENTS.md 和 INSTRUCTIONS.md）
+CLAUDE.md                       Claude Code guardrails，与 Agent.md 保持同步
+config.json                     统一配置 SSOT（模型、硬件、框架、workload 参数）
 README.md                       默认英文入口文档
 README_zh.md                    中文入口文档
+baseline/                       性能验收标准和基准数据
 docs/                           通用 NPU 工作流文档
-skills/                         核心过程化 agent skills
-prompts/                        可复制的任务 Prompt
-references/                     共享 schemas、规格和可复用规则
-model-pr-optimization-history/   历史模型和 PR 知识
 humanize/                       run ledger contract
-kernel-pilot/                   kernel 实验 helper
-patches/                        最小 patch 或迁移说明
+prompts/                        可复制的任务 Prompt
+reference/io_specs/             共享 artifact schemas（run manifest、perf、accuracy、profiling）
+reference/code-style/           代码风格约定
+reference/knowledge/            NPU 规格和可复用参考知识
+reference/pr_history/           历史模型和 PR 知识（dossier）
+scripts/                        确定性脚本库（query、compare、validate、collect）
+skills/                         核心过程化 agent skills
 tests/                          仓库卫生和 schema smoke tests
+code/                           外部挂载目录（gitignored）
+runs/                           执行现场目录（gitignored）
 ```
 
 ## 贡献指南
 
-- 把可复用经验沉淀为 skills、references、schemas、prompt 模板或 model history entries。
-- 公共入口文档保持通用；模型相关经验放到 `model-pr-optimization-history/` 或 skill `references/`。
+- 把可复用经验沉淀为 skills、reference、schemas、prompt 模板或 pr history entries。
+- 公共入口文档保持通用；模型相关经验放到 `reference/pr_history/` 或各 skill 内 `reference/` 子目录。
 - 能解释未来决策的失败尝试要保留。
 - 不要提交本地路径、私有 IP、私有数据集名称、凭据或非公开生产日志。
 - 不要把 smoke 结果包装成正式性能或精度结论。
