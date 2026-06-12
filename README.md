@@ -22,7 +22,7 @@ export AGENT_SKILL_DIR="${CODEX_HOME:-$HOME/.codex}/skills"   # Codex
 # export AGENT_SKILL_DIR="$HOME/.claude/skills"               # Claude Code
 
 mkdir -p "$AGENT_SKILL_DIR"
-for skill_dir in skills/xllm-npu-*; do
+for skill_dir in .agents/skills/xllm-npu-*; do
   ln -sfn "$(pwd)/$skill_dir" "$AGENT_SKILL_DIR/$(basename "$skill_dir")"
 done
 ```
@@ -51,7 +51,7 @@ AGENTS.md           → Agent system prompt (constraints, skill routing, directo
 CLAUDE.md           → Claude Code redirect to AGENTS.md
 config.json         → Unified configuration SSOT (active / full_test / static)
 prompts/            → Copy-ready task prompt templates (Chinese)
-skills/             → 11 procedural agent skills (eval, profiler, benchmark, …)
+.agents/skills/     → 11 procedural agent skills (eval, profiler, benchmark, …)
 reference/
    knowledge/    → Immutable domain rules (NPU specs in config.json static.npu_specs)
    code-style/   → C++/Python/NPU code style conventions
@@ -74,7 +74,7 @@ runs/               → Execution workspace (gitignored)
 
 **`scripts/`** is the deterministic engine — cross-skill shared automation scripts that LLMs must not modify. Changes to these scripts require human review.
 
-**`skills/`** contains 11 procedural agent skills, each with a SKILL.md defining the execution workflow, evidence contracts, and local references. Agents load the smallest skill matching the task.
+**`.agents/skills/`** contains 11 procedural agent skills, each with a SKILL.md defining the execution workflow, evidence contracts, and local references. Agents load the smallest skill matching the task.
 
 ## 3 Typical Workflow
 
@@ -87,7 +87,7 @@ for reproduction.
 ## 4 Contribution Guidelines
 
 1. **Deterministic capabilities go into scripts** — Any automatable deterministic logic (compile, evaluate, profiling collection) should be locked into `scripts/`; LLM must not modify script logic.
-2. **Reusable workflows become Skills** — Repeated standard workflows (benchmark comparison, PR review) should be encapsulated as `skills/` Skills, not scattered notes.
+2. **Reusable workflows become Skills** — Repeated standard workflows (benchmark comparison, PR review) should be encapsulated as `.agents/skills/` Skills, not scattered notes.
 3. **Pitfall lessons & best practices go into humanize** — Validated troubleshooting lessons, tuning insights, and recurring pitfalls belong in `humanize/`, making the workspace smarter over time.
 4. **Avoid duplication** — Configuration, specs, and prompts must not appear in multiple places; keep one source and reference it (SSOT).
 5. **Do not commit local paths, private IPs, credentials, or non-public logs.**

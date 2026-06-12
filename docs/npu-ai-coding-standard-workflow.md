@@ -64,8 +64,8 @@ Required rules:
 
 Relevant skills:
 
-- `skills/xllm-npu-eval-runner/SKILL.md`
-- `skills/xllm-npu-benchmark/SKILL.md`
+- `.agents/skills/xllm-npu-eval-runner/SKILL.md`
+- `.agents/skills/xllm-npu-benchmark/SKILL.md`
 
 ## Phase 2: Gap Assessment
 
@@ -94,12 +94,12 @@ Common evidence types:
 
 Relevant skills:
 
-- `skills/xllm-npu-profiler/SKILL.md`
-- `skills/xllm-npu-pipeline-analysis/SKILL.md`
-- `skills/xllm-npu-capacity-planner/SKILL.md`
-- `skills/xllm-npu-compute-simulation/SKILL.md`
-- `skills/xllm-npu-accuracy-debug/SKILL.md`
-- `skills/xllm-npu-incident-triage/SKILL.md`
+- `.agents/skills/xllm-npu-profiler/SKILL.md`
+- `.agents/skills/xllm-npu-pipeline-analysis/SKILL.md`
+- `.agents/skills/xllm-npu-capacity-planner/SKILL.md`
+- `.agents/skills/xllm-npu-compute-simulation/SKILL.md`
+- `.agents/skills/xllm-npu-accuracy-debug/SKILL.md`
+- `.agents/skills/xllm-npu-incident-triage/SKILL.md`
 
 ## Phase 4: Optimization Plan
 
@@ -114,7 +114,7 @@ A useful plan should include:
 - accuracy, graph-mode, memory, communication, and compatibility risks;
 - the validation commands and artifacts that will prove or disprove the change.
 
-For operator work, use `skills/xllm-npu-op-migration/SKILL.md` before starting a
+For operator work, use `.agents/skills/xllm-npu-op-migration/SKILL.md` before starting a
 low-level kernel experiment. Only proceed to kernel-level work after profiling
 shows that a kernel-level path is the right next step.
 
@@ -139,8 +139,8 @@ Research -> Learn -> Code -> Review -> Validate -> Record
 
 Relevant skills:
 
-- `skills/xllm-npu-sota-loop/SKILL.md`
-- `skills/xllm-npu-code-review/SKILL.md`
+- `.agents/skills/xllm-npu-sota-loop/SKILL.md`
+- `.agents/skills/xllm-npu-code-review/SKILL.md`
 - `reference/pr_history/SKILL.md`
 
 ## Phase 6: Record

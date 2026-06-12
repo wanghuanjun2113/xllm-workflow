@@ -15,7 +15,7 @@ def text_files():
 
 
 def test_skill_frontmatter_has_name_and_description():
-    skill_files = list(ROOT.glob("skills/*/SKILL.md")) + [
+    skill_files = list(ROOT.glob(".agents/skills/*/SKILL.md")) + [
         ROOT / "reference/pr_history/SKILL.md",
     ]
     for skill in skill_files:
@@ -32,7 +32,7 @@ def test_skills_do_not_hardcode_single_agent_install_paths():
         "$CODEX_HOME/skills/",
         "~/.claude/skills/",
     ]
-    skill_files = list(ROOT.glob("skills/*/SKILL.md")) + [
+    skill_files = list(ROOT.glob(".agents/skills/*/SKILL.md")) + [
         ROOT / "reference/pr_history/SKILL.md",
     ]
     for skill in skill_files:

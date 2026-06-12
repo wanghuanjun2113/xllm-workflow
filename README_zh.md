@@ -21,7 +21,7 @@ export AGENT_SKILL_DIR="${CODEX_HOME:-$HOME/.codex}/skills"   # Codex
 # export AGENT_SKILL_DIR="$HOME/.claude/skills"               # Claude Code
 
 mkdir -p "$AGENT_SKILL_DIR"
-for skill_dir in skills/xllm-npu-*; do
+for skill_dir in .agents/skills/xllm-npu-*; do
   ln -sfn "$(pwd)/$skill_dir" "$AGENT_SKILL_DIR/$(basename "$skill_dir")"
 done
 ```
@@ -49,7 +49,7 @@ AGENTS.md           → Agent 系统提示（约束、Skill路由、目录说明
 CLAUDE.md           → Claude Code 引流至 AGENTS.md
 config.json         → 统一配置 SSOT（active / full_test / static）
 prompts/            → 可直接复制的中文任务 Prompt 模板
-skills/             → 11 个过程化 agent skill（评测、profiler、benchmark…）
+.agents/skills/     → 11 个过程化 agent skill（评测、profiler、benchmark…）
 reference/
    knowledge/    → 不可变领域规则（NPU 规格在 config.json static.npu_specs）
    code-style/   → C++/Python/NPU 代码风格约定
@@ -72,7 +72,7 @@ runs/               → 执行现场（gitignored）
 
 **`scripts/`** 是确定性引擎——跨 skill 共用的自动化脚本，LLM 不得修改脚本逻辑，变更需人工审核。
 
-**`skills/`** 包含 11 个过程化 agent skill，每个 SKILL.md 定义了执行流程、证据合约和本地 reference。Agent 加载与任务匹配的最小 skill 即可。
+**`.agents/skills/`** 包含 11 个过程化 agent skill，每个 SKILL.md 定义了执行流程、证据合约和本地 reference。Agent 加载与任务匹配的最小 skill 即可。
 
 ## 3 典型工作流
 
@@ -84,7 +84,7 @@ runs/               → 执行现场（gitignored）
 ## 4 贡献指南
 
 1. **确定性能力写成脚本** — 任何可自动化的确定性逻辑（编译、评测、profiling 收集）应固化为 `scripts/` 下的脚本，禁止 LLM 修改脚本逻辑。
-2. **可复用经验沉淀为 Skill** — 重复执行的标准工作流（如 benchmark 对比、PR review）封装为 `skills/` 下的 Skill，而非散落的零散笔记。
+2. **可复用经验沉淀为 Skill** — 重复执行的标准工作流（如 benchmark 对比、PR review）封装为 `.agents/skills/` 下的 Skill，而非散落的零散笔记。
 3. **踩坑经验与最佳实践沉淀到 humanize** — 经验证的排障教训、调优心得、反复出现的坑点写入 `humanize/`，使工作区越用越聪明。
 4. **避免重复** — 配置、规范、提示词不多处重复；同一信息只保留一处，其他引用指向它（SSOT）。
 5. **不提交本地路径、私有 IP、凭据或非公开日志。**
