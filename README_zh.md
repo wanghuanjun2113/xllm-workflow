@@ -14,23 +14,40 @@
 
 ## 1 快速开始
 
-### A. 初始化 xLLM 代码并安装 Skills
+### A. 初始化 xLLM 代码和 Skills
+
+方式 1：在本项目根目录启动 code agent。脚本会克隆或复用 `code/xllm`，把本项目
+`skills/*` 软链接到 `.agents/skills`，并把 xLLM 仓内 skills 也链接到同一个生成目录。
 
 ```bash
 python scripts/init_xllm_workspace.py
 ```
 
+方式 2：在 `code/xllm` 下启动 code agent。同一个脚本会把本项目 `skills/*`
+安装到所选 agent 的 skills 目录，xLLM 则继续使用它仓库内自己的 skills。
+
+```bash
+python scripts/init_xllm_workspace.py --mode xllm --agent codex
+```
+
 初始化脚本会在需要时从 `config.example.json` 生成本地 `config.json`，再读取 xLLM
 仓库配置；如果配置缺失，会询问 Git URL 和分支或 commit，并写回本地
 `config.json`。当 `code/xllm` 不存在或为空时，脚本会拉取代码；如果目录已存在，
-则复用现有代码，并把 xLLM 仓内的 skills 链接到当前工作区。
+则复用现有代码。
 
 ### B. 启动 Code Agent
 
-在当前仓库根目录启动 code agent，这样它可以加载工作区 `AGENTS.md`、
-`.agents/skills` 以及已链接的 xLLM 上下文。
+方式 1：在当前仓库根目录启动 code agent，这样它可以加载工作区 `AGENTS.md`
+和生成的 `.agents/skills`。
 
 ```bash
+codex
+```
+
+方式 2：进入 xLLM 仓库目录启动 code agent。
+
+```bash
+cd code/xllm
 codex
 ```
 
@@ -58,7 +75,7 @@ CLAUDE.md           → Claude Code 引流至 AGENTS.md
 config.example.json → 共享默认配置模板
 config.json         → 本地配置 SSOT，自动生成且不提交
 prompts/            → 可直接复制的中文任务 Prompt 模板
-.agents/skills/     → 11 个过程化 agent skill（评测、profiler、benchmark…）
+skills/             → 11 个过程化 agent skill（评测、profiler、benchmark…）
 reference/
    knowledge/    → 不可变领域规则（NPU 规格在 config.json xllm.hardware.npu_specs）
    code-style/   → C++/Python/NPU 代码风格约定
@@ -81,7 +98,7 @@ runs/               → 执行现场（gitignored）
 
 **`scripts/`** 是确定性引擎——跨 skill 共用的自动化脚本，LLM 不得修改脚本逻辑，变更需人工审核。
 
-**`.agents/skills/`** 包含 11 个过程化 agent skill，每个 SKILL.md 定义了执行流程、证据合约和本地 reference。Agent 加载与任务匹配的最小 skill 即可。
+**`skills/`** 包含 11 个过程化 agent skill，每个 SKILL.md 定义了执行流程、证据合约和本地 reference。方式 1 会把它们链接到生成的 `.agents/skills`；方式 2 会把它们链接到所选 agent 的 skills 目录。
 
 ## 3 典型工作流
 
@@ -93,7 +110,7 @@ runs/               → 执行现场（gitignored）
 ## 4 贡献指南
 
 1. **确定性能力写成脚本** — 任何可自动化的确定性逻辑（编译、评测、profiling 收集）应固化为 `scripts/` 下的脚本，禁止 LLM 修改脚本逻辑。
-2. **可复用经验沉淀为 Skill** — 重复执行的标准工作流（如 benchmark 对比、PR review）封装为 `.agents/skills/` 下的 Skill，而非散落的零散笔记。
+2. **可复用经验沉淀为 Skill** — 重复执行的标准工作流（如 benchmark 对比、PR review）封装为 `skills/` 下的 Skill，而非散落的零散笔记。
 3. **踩坑经验与最佳实践沉淀到 humanize** — 经验证的排障教训、调优心得、反复出现的坑点写入 `humanize/`，使工作区越用越聪明。
 4. **避免重复** — 配置、规范、提示词不多处重复；同一信息只保留一处，其他引用指向它（SSOT）。
 5. **不提交本地路径、私有 IP、凭据或非公开日志。**

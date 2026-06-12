@@ -15,24 +15,43 @@ large-model serving optimization on Ascend NPUs. First landing target:
 
 ## 1 Quick Start
 
-### A. Initialize xLLM And Install Skills
+### A. Initialize xLLM And Skills
+
+Mode 1 starts the code agent from this repository root. The script clones or
+reuses `code/xllm`, links this project's `skills/*` into `.agents/skills`, and
+links xLLM repository skills into the same generated directory.
 
 ```bash
 python scripts/init_xllm_workspace.py
 ```
 
+Mode 2 starts the code agent from `code/xllm`. The same script installs this
+project's `skills/*` into the selected agent skills directory, while xLLM keeps
+using its own repository-local skills.
+
+```bash
+python scripts/init_xllm_workspace.py --mode xllm --agent codex
+```
+
 The initialization script creates local `config.json` from
 `config.example.json` when needed. It then reads xLLM repository settings from
 `config.json`; if they are missing, it asks for the Git URL and branch or
-commit, writes them back to local `config.json`, clones `code/xllm` when the
-directory is missing or empty, and links any xLLM skills into this workspace.
+commit, writes them back to local `config.json`, and clones `code/xllm` when the
+directory is missing or empty.
 
 ### B. Start The Code Agent
 
-Start the code agent from this repository root so it can load the workspace
-`AGENTS.md`, `.agents/skills`, and the linked xLLM context.
+For Mode 1, start the code agent from this repository root so it can load
+`AGENTS.md` and the generated `.agents/skills` directory.
 
 ```bash
+codex
+```
+
+For Mode 2, start the code agent from the xLLM repository.
+
+```bash
+cd code/xllm
 codex
 ```
 
@@ -61,7 +80,7 @@ CLAUDE.md           → Claude Code redirect to AGENTS.md
 config.example.json → Shared default configuration template
 config.json         → Local configuration SSOT, generated and gitignored
 prompts/            → Copy-ready task prompt templates (Chinese)
-.agents/skills/     → 11 procedural agent skills (eval, profiler, benchmark, …)
+skills/             → 11 procedural agent skills (eval, profiler, benchmark, …)
 reference/
    knowledge/    → Immutable domain rules (NPU specs in config.json xllm.hardware.npu_specs)
    code-style/   → C++/Python/NPU code style conventions
@@ -84,7 +103,7 @@ runs/               → Execution workspace (gitignored)
 
 **`scripts/`** is the deterministic engine — cross-skill shared automation scripts that LLMs must not modify. Changes to these scripts require human review.
 
-**`.agents/skills/`** contains 11 procedural agent skills, each with a SKILL.md defining the execution workflow, evidence contracts, and local references. Agents load the smallest skill matching the task.
+**`skills/`** contains 11 procedural agent skills, each with a SKILL.md defining the execution workflow, evidence contracts, and local references. Mode 1 links them into generated `.agents/skills`; Mode 2 links them into the selected agent skills directory.
 
 ## 3 Typical Workflow
 
@@ -97,7 +116,7 @@ for reproduction.
 ## 4 Contribution Guidelines
 
 1. **Deterministic capabilities go into scripts** — Any automatable deterministic logic (compile, evaluate, profiling collection) should be locked into `scripts/`; LLM must not modify script logic.
-2. **Reusable workflows become Skills** — Repeated standard workflows (benchmark comparison, PR review) should be encapsulated as `.agents/skills/` Skills, not scattered notes.
+2. **Reusable workflows become Skills** — Repeated standard workflows (benchmark comparison, PR review) should be encapsulated as `skills/` Skills, not scattered notes.
 3. **Pitfall lessons & best practices go into humanize** — Validated troubleshooting lessons, tuning insights, and recurring pitfalls belong in `humanize/`, making the workspace smarter over time.
 4. **Avoid duplication** — Configuration, specs, and prompts must not appear in multiple places; keep one source and reference it (SSOT).
 5. **Do not commit local paths, private IPs, credentials, or non-public logs.**

@@ -34,7 +34,7 @@
 - 模型特有风险与收益 → `reference/pr_history/`
 - profiling 经验 → skill references 或 `reference/pr_history/`
 - 可复用的 artifact 字段 → `reference/io_specs/`
-- 可复用的工作流 → `.agents/skills/`
+- 可复用的工作流 → `skills/`
 
 这样防止过期的本地实验路径变成全局指导，同时保留每次运行的
 证据循环记录。

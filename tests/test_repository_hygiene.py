@@ -7,7 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def text_files():
     suffixes = {".md", ".py", ".sh", ".json", ".jsonl", ".yaml", ".yml"}
-    ignored_parts = {".git", ".pytest_cache", "__pycache__", "code", "runs"}
+    ignored_parts = {".git", ".agents", ".pytest_cache", "__pycache__", "code", "runs"}
     ignored_files = {"config.json"}
     for path in ROOT.rglob("*"):
         if any(part in ignored_parts for part in path.parts):
@@ -19,7 +19,7 @@ def text_files():
 
 
 def test_skill_frontmatter_has_name_and_description():
-    skill_files = list(ROOT.glob(".agents/skills/*/SKILL.md")) + [
+    skill_files = list(ROOT.glob("skills/*/SKILL.md")) + [
         ROOT / "reference/pr_history/SKILL.md",
     ]
     for skill in skill_files:
@@ -36,7 +36,7 @@ def test_skills_do_not_hardcode_single_agent_install_paths():
         "$CODEX_HOME/skills/",
         "~/.claude/skills/",
     ]
-    skill_files = list(ROOT.glob(".agents/skills/*/SKILL.md")) + [
+    skill_files = list(ROOT.glob("skills/*/SKILL.md")) + [
         ROOT / "reference/pr_history/SKILL.md",
     ]
     for skill in skill_files:

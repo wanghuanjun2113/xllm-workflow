@@ -133,8 +133,8 @@
       "build": "code/xllm/cibuild/build_npu.sh",
       "serve": "",
       "smoke": "",
-      "perf": ".agents/skills/xllm-npu-eval-runner/scripts/eval_perf.sh",
-      "accuracy": ".agents/skills/xllm-npu-eval-runner/scripts/eval_acc.sh"
+      "perf": "skills/xllm-npu-eval-runner/scripts/eval_perf.sh",
+      "accuracy": "skills/xllm-npu-eval-runner/scripts/eval_acc.sh"
     }
   },
   "full_test": {
@@ -158,10 +158,10 @@
     "metrics": ["ttft_ms", "tpot_ms", "tokens_per_second", "success_rate"],
     "accuracy": {
       "datasets": ["gsm8k_gen_0_shot_cot_chat_prompt", "ceval_gen_0_shot_cot_chat_prompt"],
-      "script": ".agents/skills/xllm-npu-eval-runner/scripts/eval_acc.sh"
+      "script": "skills/xllm-npu-eval-runner/scripts/eval_acc.sh"
     },
     "performance": {
-      "script": ".agents/skills/xllm-npu-eval-runner/scripts/eval_perf.sh"
+      "script": "skills/xllm-npu-eval-runner/scripts/eval_perf.sh"
     }
   }
 }

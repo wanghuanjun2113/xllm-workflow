@@ -91,7 +91,14 @@ def test_load_config_creates_local_config_from_template(tmp_path):
     assert json.loads(config_path.read_text(encoding="utf-8")) == config
 
 
-def test_link_xllm_skills_links_agent_and_legacy_skill_dirs(tmp_path, monkeypatch):
+def test_link_workspace_skills_links_project_and_xllm_skill_dirs(tmp_path, monkeypatch):
+    project_skill = tmp_path / "skills" / "project-review"
+    project_skill.mkdir(parents=True)
+    (project_skill / "SKILL.md").write_text(
+        "---\nname: project-review\ndescription: review\n---\n",
+        encoding="utf-8",
+    )
+
     xllm_dir = tmp_path / "code" / "xllm"
     skill_a = xllm_dir / ".agents" / "skills" / "debug"
     skill_b = xllm_dir / "skills" / "profile"
@@ -102,32 +109,51 @@ def test_link_xllm_skills_links_agent_and_legacy_skill_dirs(tmp_path, monkeypatc
 
     skills_dir = tmp_path / ".agents" / "skills"
     monkeypatch.setattr(init, "ROOT", tmp_path)
+    monkeypatch.setattr(init, "PROJECT_SKILLS_DIR", tmp_path / "skills")
+    monkeypatch.setattr(init, "WORKSPACE_SKILLS_DIR", skills_dir)
 
-    linked, skipped = init.link_xllm_skills(xllm_dir, skills_dir)
+    project_linked, project_skipped, xllm_linked, xllm_skipped = init.link_workspace_skills(xllm_dir)
 
-    assert skipped == []
-    assert linked == [
+    assert project_skipped == []
+    assert xllm_skipped == []
+    assert project_linked == ["project-review -> skills/project-review"]
+    assert xllm_linked == [
         "xllm-debug -> code/xllm/.agents/skills/debug",
         "xllm-profile -> code/xllm/skills/profile",
     ]
+    assert (skills_dir / "project-review").is_symlink()
     assert (skills_dir / "xllm-debug").is_symlink()
     assert (skills_dir / "xllm-profile").is_symlink()
 
 
-def test_link_xllm_skills_does_not_replace_real_directory(tmp_path, monkeypatch):
-    xllm_dir = tmp_path / "code" / "xllm"
-    source = xllm_dir / ".agents" / "skills" / "debug"
+def test_link_skill_dirs_does_not_replace_real_directory(tmp_path, monkeypatch):
+    source = tmp_path / "skills" / "debug"
     source.mkdir(parents=True)
     (source / "SKILL.md").write_text("---\nname: debug\ndescription: debug\n---\n", encoding="utf-8")
 
     skills_dir = tmp_path / ".agents" / "skills"
-    existing = skills_dir / "xllm-debug"
+    existing = skills_dir / "debug"
     existing.mkdir(parents=True)
     monkeypatch.setattr(init, "ROOT", tmp_path)
 
-    linked, skipped = init.link_xllm_skills(xllm_dir, skills_dir)
+    linked, skipped = init.link_skill_dirs([source], skills_dir)
 
     assert linked == []
-    assert skipped == ["xllm-debug (目标已存在且不是软链)"]
+    assert skipped == ["debug (目标已存在且不是软链)"]
     assert existing.is_dir()
     assert not existing.is_symlink()
+
+
+def test_install_project_skills_links_to_target_dir(tmp_path, monkeypatch):
+    source = tmp_path / "skills" / "triage"
+    source.mkdir(parents=True)
+    (source / "SKILL.md").write_text("---\nname: triage\ndescription: triage\n---\n", encoding="utf-8")
+    target_dir = tmp_path / ".codex" / "skills"
+    monkeypatch.setattr(init, "ROOT", tmp_path)
+    monkeypatch.setattr(init, "PROJECT_SKILLS_DIR", tmp_path / "skills")
+
+    linked, skipped = init.install_project_skills(target_dir)
+
+    assert skipped == []
+    assert linked == ["triage -> skills/triage"]
+    assert (target_dir / "triage").is_symlink()

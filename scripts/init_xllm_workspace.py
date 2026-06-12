@@ -4,7 +4,8 @@
 The script is intentionally repeatable:
 - It clones xLLM only when code/xllm is missing or empty.
 - It records missing repository settings in config.json.
-- It links xLLM skills into the parent .agents/skills directory.
+- It can prepare the parent workspace .agents/skills directory.
+- It can install this project's skills into a Codex or Claude skills directory.
 """
 
 from __future__ import annotations
@@ -24,7 +25,8 @@ ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CONFIG = ROOT / "config.json"
 DEFAULT_CONFIG_TEMPLATE = ROOT / "config.example.json"
 DEFAULT_XLLM_DIR = ROOT / "code" / "xllm"
-DEFAULT_SKILLS_DIR = ROOT / ".agents" / "skills"
+PROJECT_SKILLS_DIR = ROOT / "skills"
+WORKSPACE_SKILLS_DIR = ROOT / ".agents" / "skills"
 CODE_KEY = "code"
 LEGACY_CONFIG_KEY = "repositories"
 XLLM_KEY = "xllm"
@@ -257,17 +259,32 @@ def find_skill_dirs(xllm_dir: Path) -> list[Path]:
     return skill_dirs
 
 
+def find_project_skill_dirs(project_skills_dir: Path | None = None) -> list[Path]:
+    project_skills_dir = project_skills_dir or PROJECT_SKILLS_DIR
+    if not project_skills_dir.is_dir():
+        return []
+    return [
+        child
+        for child in sorted(project_skills_dir.iterdir())
+        if (child / "SKILL.md").is_file()
+    ]
+
+
 def relative_symlink_target(source: Path, link: Path) -> str:
     return os.path.relpath(source.resolve(), link.parent.resolve())
 
 
-def link_xllm_skills(xllm_dir: Path, skills_dir: Path) -> tuple[list[str], list[str]]:
+def link_skill_dirs(
+    skill_dirs: list[Path],
+    skills_dir: Path,
+    name_prefix: str = "",
+) -> tuple[list[str], list[str]]:
     skills_dir.mkdir(parents=True, exist_ok=True)
     linked: list[str] = []
     skipped: list[str] = []
 
-    for source in find_skill_dirs(xllm_dir):
-        link_name = f"xllm-{source.name}"
+    for source in skill_dirs:
+        link_name = f"{name_prefix}{source.name}"
         link = skills_dir / link_name
 
         if link.exists() and not link.is_symlink():
@@ -283,18 +300,57 @@ def link_xllm_skills(xllm_dir: Path, skills_dir: Path) -> tuple[list[str], list[
     return linked, skipped
 
 
-def print_summary(xllm_dir: Path, linked: list[str], skipped: list[str]) -> None:
+def link_workspace_skills(xllm_dir: Path) -> tuple[list[str], list[str], list[str], list[str]]:
+    project_linked, project_skipped = link_skill_dirs(
+        find_project_skill_dirs(),
+        WORKSPACE_SKILLS_DIR,
+    )
+    xllm_linked, xllm_skipped = link_skill_dirs(
+        find_skill_dirs(xllm_dir),
+        WORKSPACE_SKILLS_DIR,
+        name_prefix="xllm-",
+    )
+    return project_linked, project_skipped, xllm_linked, xllm_skipped
+
+
+def default_agent_skills_dir(agent: str) -> Path:
+    if agent == "codex":
+        return Path(os.environ.get("CODEX_HOME", str(Path.home() / ".codex"))).expanduser() / "skills"
+    if agent == "claude":
+        return Path(os.environ.get("CLAUDE_HOME", str(Path.home() / ".claude"))).expanduser() / "skills"
+    raise InitError(f"未知 agent 类型: {agent}")
+
+
+def install_project_skills(target_dir: Path) -> tuple[list[str], list[str]]:
+    return link_skill_dirs(find_project_skill_dirs(), target_dir)
+
+
+def print_workspace_summary(
+    xllm_dir: Path,
+    project_linked: list[str],
+    project_skipped: list[str],
+    xllm_linked: list[str],
+    xllm_skipped: list[str],
+) -> None:
     print()
     print("初始化完成。")
     print(f"- xLLM 目录: {display_path(xllm_dir)}")
 
-    if linked:
-        print("- 已链接 xLLM skills:")
-        for item in linked:
+    if project_linked:
+        print("- 已链接本项目 skills 到 .agents/skills:")
+        for item in project_linked:
             print(f"  - {item}")
     else:
-        print("- 未发现可链接的 xLLM skills。")
+        print("- 未发现可链接的本项目 skills。")
 
+    if xllm_linked:
+        print("- 已链接 xLLM 仓内 skills 到 .agents/skills:")
+        for item in xllm_linked:
+            print(f"  - {item}")
+    else:
+        print("- 未发现可链接的 xLLM 仓内 skills。")
+
+    skipped = project_skipped + xllm_skipped
     if skipped:
         print("- 以下 skill 链接被跳过:")
         for item in skipped:
@@ -306,6 +362,37 @@ def print_summary(xllm_dir: Path, linked: list[str], skipped: list[str]) -> None
     print("  codex")
 
 
+def print_xllm_summary(
+    xllm_dir: Path,
+    target_dir: Path,
+    agent: str,
+    linked: list[str],
+    skipped: list[str],
+) -> None:
+    print()
+    print("初始化完成。")
+    print(f"- xLLM 目录: {display_path(xllm_dir)}")
+    print(f"- {agent} skills 目录: {target_dir}")
+
+    if linked:
+        print("- 已安装本项目 skills:")
+        for item in linked:
+            print(f"  - {item}")
+    else:
+        print("- 未发现可安装的本项目 skills。")
+
+    if skipped:
+        print("- 以下 skill 链接被跳过:")
+        for item in skipped:
+            print(f"  - {item}")
+
+    command = "codex" if agent == "codex" else "claude"
+    print()
+    print("请在 xLLM 目录启动 code agent:")
+    print(f"  cd {xllm_dir}")
+    print(f"  {command}")
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Initialize code/xllm for Codex.")
     parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG, help="配置文件路径")
@@ -313,6 +400,19 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--repo-url", help="xLLM git 仓库 URL，会写入 config.json")
     parser.add_argument("--ref", help="xLLM 分支名或 commit，会写入 config.json")
     parser.add_argument("--ref-type", choices=["branch", "commit"], help="ref 类型")
+    parser.add_argument(
+        "--mode",
+        choices=["workspace", "xllm"],
+        default="workspace",
+        help="workspace: 在本项目根目录启动 agent；xllm: 在 code/xllm 下启动 agent",
+    )
+    parser.add_argument(
+        "--install-project-skills",
+        action="store_true",
+        help="方式 2 快捷参数：把本项目 skills 安装到 agent skills 目录，并在 code/xllm 下启动",
+    )
+    parser.add_argument("--agent", choices=["codex", "claude"], default="codex", help="方式 2 的 code agent 类型")
+    parser.add_argument("--target-dir", type=Path, help="方式 2 的 skills 安装目录；默认按 --agent 选择")
     parser.add_argument(
         "--yes",
         action="store_true",
@@ -325,6 +425,7 @@ def main() -> int:
     args = parse_args()
     config_path = args.config.resolve()
     xllm_dir = args.xllm_dir.resolve()
+    mode = "xllm" if args.install_project_skills else args.mode
 
     try:
         config = load_config(config_path)
@@ -337,8 +438,13 @@ def main() -> int:
             args.yes,
         )
         clone_xllm(repo, xllm_dir)
-        linked, skipped = link_xllm_skills(xllm_dir, DEFAULT_SKILLS_DIR)
-        print_summary(xllm_dir, linked, skipped)
+        if mode == "workspace":
+            project_linked, project_skipped, xllm_linked, xllm_skipped = link_workspace_skills(xllm_dir)
+            print_workspace_summary(xllm_dir, project_linked, project_skipped, xllm_linked, xllm_skipped)
+        else:
+            target_dir = (args.target_dir.expanduser() if args.target_dir else default_agent_skills_dir(args.agent)).resolve()
+            linked, skipped = install_project_skills(target_dir)
+            print_xllm_summary(xllm_dir, target_dir, args.agent, linked, skipped)
     except subprocess.CalledProcessError as exc:
         print(f"[error] 命令执行失败，退出码 {exc.returncode}: {' '.join(exc.cmd)}", file=sys.stderr)
         return exc.returncode

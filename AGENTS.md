@@ -16,7 +16,7 @@ when their adapters and runbooks are added.
 - Separate generic workflow rules from model-specific or framework-specific
   lessons.
 - Promote durable lessons into `reference/pr_history/`, `reference/`,
-  `.agents/skills/*/references/`, or run-root `humanize/` ledgers.
+  `skills/*/references/`, or run-root `humanize/` ledgers.
 
 ## 2. Core Engineering Constraints
 
@@ -76,17 +76,17 @@ when their adapters and runbooks are added.
 
 | Task | Start With |
 |---|---|
-| End-to-end optimization goal | `.agents/skills/xllm-npu-sota-loop/SKILL.md` |
-| Launch service or collect evalscope artifacts | `.agents/skills/xllm-npu-eval-runner/SKILL.md` |
-| Fair benchmark comparison | `.agents/skills/xllm-npu-benchmark/SKILL.md` |
-| msprof / MindStudio profiling analysis | `.agents/skills/xllm-npu-profiler/SKILL.md` |
-| Prefill/decode boundary, layer timing, or rank skew | `.agents/skills/xllm-npu-pipeline-analysis/SKILL.md` |
-| Capacity, HBM, KV cache, concurrency, or OOM risk | `.agents/skills/xllm-npu-capacity-planner/SKILL.md` |
-| FLOPs, MFU, or hardware lower-bound estimates | `.agents/skills/xllm-npu-compute-simulation/SKILL.md` |
-| Garbled output, CEval drop, or GPU/NPU mismatch | `.agents/skills/xllm-npu-accuracy-debug/SKILL.md` |
-| Crash, hang, HCCL, graph, or PagedAttention incident | `.agents/skills/xllm-npu-incident-triage/SKILL.md` |
-| NPU code review before PR | `.agents/skills/xllm-npu-code-review/SKILL.md` |
-| Operator migration | `.agents/skills/xllm-npu-op-migration/SKILL.md` |
+| End-to-end optimization goal | `skills/xllm-npu-sota-loop/SKILL.md` |
+| Launch service or collect evalscope artifacts | `skills/xllm-npu-eval-runner/SKILL.md` |
+| Fair benchmark comparison | `skills/xllm-npu-benchmark/SKILL.md` |
+| msprof / MindStudio profiling analysis | `skills/xllm-npu-profiler/SKILL.md` |
+| Prefill/decode boundary, layer timing, or rank skew | `skills/xllm-npu-pipeline-analysis/SKILL.md` |
+| Capacity, HBM, KV cache, concurrency, or OOM risk | `skills/xllm-npu-capacity-planner/SKILL.md` |
+| FLOPs, MFU, or hardware lower-bound estimates | `skills/xllm-npu-compute-simulation/SKILL.md` |
+| Garbled output, CEval drop, or GPU/NPU mismatch | `skills/xllm-npu-accuracy-debug/SKILL.md` |
+| Crash, hang, HCCL, graph, or PagedAttention incident | `skills/xllm-npu-incident-triage/SKILL.md` |
+| NPU code review before PR | `skills/xllm-npu-code-review/SKILL.md` |
+| Operator migration | `skills/xllm-npu-op-migration/SKILL.md` |
 
 ## 4. Configuration and Directory Guide
 
@@ -94,8 +94,8 @@ when their adapters and runbooks are added.
 
 1. `config.json` — local active configuration for current work, generated from `config.example.json` and not committed
 2. `reference/` — static domain knowledge and interface contracts
-3. `.agents/skills/*/references/` — skill-specific detailed references
-4. `.agents/skills/*/SKILL.md` — procedural execution workflow
+3. `skills/*/references/` — skill-specific detailed references
+4. `skills/*/SKILL.md` — procedural execution workflow
 
 ### Directory Descriptions
 
