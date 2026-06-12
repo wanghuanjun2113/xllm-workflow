@@ -7,8 +7,12 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def text_files():
     suffixes = {".md", ".py", ".sh", ".json", ".jsonl", ".yaml", ".yml"}
+    ignored_parts = {".git", ".pytest_cache", "__pycache__", "code", "runs"}
+    ignored_files = {"config.json"}
     for path in ROOT.rglob("*"):
-        if ".git" in path.parts:
+        if any(part in ignored_parts for part in path.parts):
+            continue
+        if path.name in ignored_files:
             continue
         if path.is_file() and path.suffix in suffixes:
             yield path

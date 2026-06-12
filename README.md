@@ -21,10 +21,11 @@ large-model serving optimization on Ascend NPUs. First landing target:
 python scripts/init_xllm_workspace.py
 ```
 
-The initialization script reads xLLM repository settings from `config.json`. If
-they are missing, it asks for the Git URL and branch or commit, writes them back
-to `config.json`, clones `code/xllm` when the directory is missing or empty, and
-links any xLLM skills into this workspace.
+The initialization script creates local `config.json` from
+`config.example.json` when needed. It then reads xLLM repository settings from
+`config.json`; if they are missing, it asks for the Git URL and branch or
+commit, writes them back to local `config.json`, clones `code/xllm` when the
+directory is missing or empty, and links any xLLM skills into this workspace.
 
 ### B. Start The Code Agent
 
@@ -57,11 +58,12 @@ See [AGENTS.md](AGENTS.md) for skill routing and [docs/workflow](docs/npu-ai-cod
 ```text
 AGENTS.md           → Agent system prompt (constraints, skill routing, directory guide)
 CLAUDE.md           → Claude Code redirect to AGENTS.md
-config.json         → Unified configuration SSOT (active / full_test / static)
+config.example.json → Shared default configuration template
+config.json         → Local configuration SSOT, generated and gitignored
 prompts/            → Copy-ready task prompt templates (Chinese)
 .agents/skills/     → 11 procedural agent skills (eval, profiler, benchmark, …)
 reference/
-   knowledge/    → Immutable domain rules (NPU specs in config.json static.npu_specs)
+   knowledge/    → Immutable domain rules (NPU specs in config.json xllm.hardware.npu_specs)
    code-style/   → C++/Python/NPU code style conventions
    io_specs/     → Artifact schemas (run manifest, perf, accuracy, profiling)
    pr_history/   → Model dossiers and PR history (queryable via scripts/query.py)
@@ -74,7 +76,7 @@ code/               → External source mount (gitignored)
 runs/               → Execution workspace (gitignored)
 ```
 
-**`config.json`** is the single source of truth for all configuration. It has three blocks: `active` holds the current model, NPU, and serving parameters for the work at hand; `full_test` lists cross-model and cross-framework targets for comprehensive validation; `static` stores immutable hardware specs (NPU peak FLOPs, bandwidth, HBM). Skills and scripts read config.json instead of hardcoding values.
+**`config.example.json`** is the shared default template. **`config.json`** is the local single source of truth for one developer's workspace and is intentionally gitignored. Its top-level order is `code` (origin/upstream/branch/commit), `xllm` (model, draft model, feature flags, and launch args aligned with xLLM startup parameters), `dev_test` (small input/output/concurrency/dtype/script settings), and `full_test` (comprehensive validation matrix). Skills and scripts read local config.json instead of hardcoding values.
 
 **`reference/`** is the static knowledge base — immutable domain rules that never change based on a single run. Skills query it for hardware limits, code style, artifact schemas, and historical optimization context.
 

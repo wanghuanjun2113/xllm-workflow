@@ -1,5 +1,11 @@
 __pycache__/
 *.py[cod]
 .pytest_cache/
+config.json
 code/
 runs/
+
+# Local skill symlinks generated from code/xllm. Keep checked-in workspace
+# skills such as .agents/skills/xllm-npu-* trackable.
+.agents/skills/xllm-*
+!.agents/skills/xllm-npu-*/

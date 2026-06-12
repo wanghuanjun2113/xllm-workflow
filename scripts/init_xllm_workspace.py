@@ -13,6 +13,7 @@ import argparse
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -21,9 +22,11 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CONFIG = ROOT / "config.json"
+DEFAULT_CONFIG_TEMPLATE = ROOT / "config.example.json"
 DEFAULT_XLLM_DIR = ROOT / "code" / "xllm"
 DEFAULT_SKILLS_DIR = ROOT / ".agents" / "skills"
-CONFIG_KEY = "repositories"
+CODE_KEY = "code"
+LEGACY_CONFIG_KEY = "repositories"
 XLLM_KEY = "xllm"
 
 
@@ -37,7 +40,13 @@ def run(cmd: list[str], cwd: Path | None = None) -> None:
     subprocess.run(cmd, cwd=cwd, check=True)
 
 
-def load_config(path: Path) -> dict[str, Any]:
+def load_config(path: Path, template_path: Path = DEFAULT_CONFIG_TEMPLATE) -> dict[str, Any]:
+    if not path.exists():
+        if template_path.exists() and path.name == "config.json":
+            shutil.copyfile(template_path, path)
+            print(f"[config] 已从 {display_path(template_path)} 生成 {display_path(path)}")
+        else:
+            return {}
     if not path.exists():
         return {}
     try:
@@ -90,15 +99,51 @@ def prompt_ref_type(ref: str) -> str:
         print("请输入 branch 或 commit。")
 
 
-def normalize_repo_config(config: dict[str, Any]) -> dict[str, Any]:
-    repositories = config.setdefault(CONFIG_KEY, {})
-    if not isinstance(repositories, dict):
-        raise InitError(f"config.json 中 `{CONFIG_KEY}` 必须是对象。")
+def ensure_dict(parent: dict[str, Any], key: str, label: str) -> dict[str, Any]:
+    value = parent.setdefault(key, {})
+    if not isinstance(value, dict):
+        raise InitError(f"config.json 中 `{label}` 必须是对象。")
+    return value
 
-    repo = repositories.setdefault(XLLM_KEY, {})
-    if not isinstance(repo, dict):
-        raise InitError(f"config.json 中 `{CONFIG_KEY}.{XLLM_KEY}` 必须是对象。")
+
+def normalize_repo_config(config: dict[str, Any]) -> dict[str, Any]:
+    code = ensure_dict(config, CODE_KEY, CODE_KEY)
+    repo = ensure_dict(code, XLLM_KEY, f"{CODE_KEY}.{XLLM_KEY}")
+    origin = ensure_dict(repo, "origin", f"{CODE_KEY}.{XLLM_KEY}.origin")
+    upstream = ensure_dict(repo, "upstream", f"{CODE_KEY}.{XLLM_KEY}.upstream")
+    repo.setdefault("path", "code/xllm")
+    origin.setdefault("url", "")
+    origin.setdefault("branch", "")
+    origin.setdefault("commit", "")
+    upstream.setdefault("url", "")
+    upstream.setdefault("branch", "")
+    upstream.setdefault("commit", "")
+
+    legacy = config.get(LEGACY_CONFIG_KEY, {})
+    if isinstance(legacy, dict) and isinstance(legacy.get(XLLM_KEY), dict):
+        legacy_repo = legacy[XLLM_KEY]
+        if legacy_repo.get("url") and not origin.get("url"):
+            origin["url"] = legacy_repo["url"]
+        legacy_ref = legacy_repo.get("ref")
+        legacy_ref_type = legacy_repo.get("ref_type") or infer_ref_type(str(legacy_ref or ""))
+        if legacy_ref and legacy_ref_type == "commit" and not origin.get("commit"):
+            origin["commit"] = legacy_ref
+        elif legacy_ref and not origin.get("branch"):
+            origin["branch"] = legacy_ref
+
     return repo
+
+
+def selected_repo_source(repo: dict[str, Any]) -> dict[str, str]:
+    origin = repo["origin"]
+    upstream = repo["upstream"]
+    url = str(origin.get("url") or upstream.get("url") or "")
+    commit = str(origin.get("commit") or upstream.get("commit") or "")
+    branch = str(origin.get("branch") or upstream.get("branch") or "")
+
+    if commit:
+        return {"url": url, "ref": commit, "ref_type": "commit"}
+    return {"url": url, "ref": branch, "ref_type": "branch"}
 
 
 def resolve_repo_config(
@@ -110,19 +155,26 @@ def resolve_repo_config(
     assume_yes: bool,
 ) -> dict[str, str]:
     repo = normalize_repo_config(config)
+    origin = repo["origin"]
     changed = False
 
     if repo_url:
-        repo["url"] = repo_url
+        origin["url"] = repo_url
         changed = True
     if ref:
-        repo["ref"] = ref
-        changed = True
-    if ref_type:
-        repo["ref_type"] = ref_type
+        effective_ref_type = ref_type or infer_ref_type(ref) or "branch"
+        if effective_ref_type == "commit":
+            origin["commit"] = ref
+        else:
+            origin["branch"] = ref
         changed = True
 
-    missing = [key for key in ("url", "ref", "ref_type") if not repo.get(key)]
+    selected = selected_repo_source(repo)
+    missing = []
+    if not selected["url"]:
+        missing.append("origin.url")
+    if not selected["ref"]:
+        missing.append("origin.branch 或 origin.commit")
     if missing:
         if assume_yes or not sys.stdin.isatty():
             raise InitError(
@@ -132,28 +184,25 @@ def resolve_repo_config(
             )
 
         print("config.json 缺少 xLLM 仓库配置，请输入后脚本会写回 config.json。")
-        if not repo.get("url"):
-            repo["url"] = prompt_required("xLLM git 仓库 URL")
+        if not selected["url"]:
+            origin["url"] = prompt_required("xLLM origin git 仓库 URL")
             changed = True
-        if not repo.get("ref"):
-            repo["ref"] = prompt_required("xLLM 分支名或 commit")
-            changed = True
-        if not repo.get("ref_type"):
-            repo["ref_type"] = prompt_ref_type(str(repo["ref"]))
+        if not selected["ref"]:
+            entered_ref = prompt_required("xLLM 分支名或 commit")
+            entered_ref_type = prompt_ref_type(entered_ref)
+            if entered_ref_type == "commit":
+                origin["commit"] = entered_ref
+            else:
+                origin["branch"] = entered_ref
             changed = True
 
-    if repo.get("ref_type") not in {"branch", "commit"}:
-        raise InitError("xLLM ref_type 必须是 branch 或 commit。")
+    selected = selected_repo_source(repo)
 
     if changed:
         save_config(config_path, config)
         print(f"[config] 已更新 {display_path(config_path)}")
 
-    return {
-        "url": str(repo["url"]),
-        "ref": str(repo["ref"]),
-        "ref_type": str(repo["ref_type"]),
-    }
+    return selected
 
 
 def dir_has_code(path: Path) -> bool:

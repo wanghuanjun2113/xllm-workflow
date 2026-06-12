@@ -92,16 +92,17 @@ when their adapters and runbooks are added.
 
 ### Cascade Priority
 
-1. `config.json` — active configuration for current work
+1. `config.json` — local active configuration for current work, generated from `config.example.json` and not committed
 2. `reference/` — static domain knowledge and interface contracts
 3. `.agents/skills/*/references/` — skill-specific detailed references
 4. `.agents/skills/*/SKILL.md` — procedural execution workflow
 
 ### Directory Descriptions
 
-- **`config.json`** — Unified configuration entry: `active` (current model/NPU/parameters), `full_test` (cross-model/framework test targets), `static` (NPU hardware specs). Single source of truth for all configuration.
+- **`config.example.json`** — Shared default configuration template checked into Git.
+- **`config.json`** — Local unified configuration entry generated from `config.example.json`: `code` (origin/upstream/branch/commit), `xllm` (model, draft model, feature flags, and launch args), `dev_test` (small input/output/concurrency/script settings), and `full_test` (comprehensive validation matrix). Single source of truth for one developer's current workspace. Do not commit personal changes.
 - **`reference/`** — Static knowledge base, immutable domain rules:
-  - `knowledge/` — Domain knowledge (immutable rules; NPU specs are in config.json `static.npu_specs`)
+  - `knowledge/` — Domain knowledge (immutable rules; NPU specs are in config.json `xllm.hardware.npu_specs`)
   - `code-style/` — Code style conventions (C++/Python/NPU coding standards)
   - `pr_history/` — Evolution history (model dossiers, PR change logs, queryable via `scripts/query.py`)
   - `io_specs/` — Interface contracts (artifact schemas, manifest templates defining skill-Agent interaction)

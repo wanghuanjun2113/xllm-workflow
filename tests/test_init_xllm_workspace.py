@@ -16,7 +16,7 @@ SPEC.loader.exec_module(init)
 
 def test_resolve_repo_config_writes_cli_values(tmp_path):
     config_path = tmp_path / "config.json"
-    config = {"active": {"framework": "xllm"}}
+    config = {"xllm": {"model": {"model_id": "qwen35-27b"}}}
 
     repo = init.resolve_repo_config(
         config,
@@ -33,7 +33,36 @@ def test_resolve_repo_config_writes_cli_values(tmp_path):
         "ref_type": "branch",
     }
     saved = json.loads(config_path.read_text(encoding="utf-8"))
-    assert saved["repositories"]["xllm"] == repo
+    assert saved["code"]["xllm"]["origin"] == {
+        "url": "https://example.com/xllm.git",
+        "branch": "main",
+        "commit": "",
+    }
+
+
+def test_resolve_repo_config_reads_legacy_repository_values(tmp_path):
+    repo = init.resolve_repo_config(
+        {
+            "repositories": {
+                "xllm": {
+                    "url": "https://example.com/legacy-xllm.git",
+                    "ref": "abc1234",
+                    "ref_type": "commit",
+                }
+            }
+        },
+        tmp_path / "config.json",
+        repo_url=None,
+        ref=None,
+        ref_type=None,
+        assume_yes=True,
+    )
+
+    assert repo == {
+        "url": "https://example.com/legacy-xllm.git",
+        "ref": "abc1234",
+        "ref_type": "commit",
+    }
 
 
 def test_resolve_repo_config_requires_missing_values_in_noninteractive_mode(tmp_path):
@@ -46,6 +75,20 @@ def test_resolve_repo_config_requires_missing_values_in_noninteractive_mode(tmp_
             ref_type=None,
             assume_yes=True,
         )
+
+
+def test_load_config_creates_local_config_from_template(tmp_path):
+    config_path = tmp_path / "config.json"
+    template_path = tmp_path / "config.example.json"
+    template_path.write_text(
+        json.dumps({"active": {"framework": "xllm"}}) + "\n",
+        encoding="utf-8",
+    )
+
+    config = init.load_config(config_path, template_path)
+
+    assert config == {"active": {"framework": "xllm"}}
+    assert json.loads(config_path.read_text(encoding="utf-8")) == config
 
 
 def test_link_xllm_skills_links_agent_and_legacy_skill_dirs(tmp_path, monkeypatch):
